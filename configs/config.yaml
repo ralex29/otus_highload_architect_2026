@@ -1,0 +1,84 @@
+components_manager:
+  components:
+    congestion-control:
+      fake-mode: true
+    default-server-middleware-pipeline-builder:
+      append:
+      - testsuite-exceptions-handling-middleware
+    dns-client:
+      fs-task-processor: fs-task-processor
+    dynamic-config:
+      defaults:
+        HTTP_CLIENT_CONNECTION_POOL_SIZE: 1000
+        POSTGRES_DEFAULT_COMMAND_CONTROL:
+          network_timeout_ms: 750
+          statement_timeout_ms: 500
+    handler-hello:
+      method: GET,POST
+      path: /hello
+      task_processor: main-task-processor
+    handler-hello-postgres:
+      method: GET,POST
+      path: /hello-postgres
+      task_processor: main-task-processor
+    handler-ping:
+      method: GET
+      path: /ping
+      task_processor: main-task-processor
+      throttling_enabled: false
+      url_trailing_slash: strict-match
+    http-client: null
+    http-client-core:
+      fs-task-processor: fs-task-processor
+      load-enabled: $is_testing
+      testsuite-allowed-url-prefixes:
+      - http://localhost:36671/
+      testsuite-enabled: true
+      testsuite-timeout: 10s
+    logging:
+      fs-task-processor: fs-task-processor
+      loggers:
+        default:
+          file_path: /home/user/social_net_service/build-release/Testing/Temporary/service.log
+          format: tskv
+          level: debug
+          overflow_behavior: discard
+          testsuite-capture:
+            host: ::1
+            port: 43231
+    postgres-db-1:
+      blocking_task_processor: fs-task-processor
+      connlimit_mode: manual
+      dbconnection: postgresql:///social_net_service_db_1?host=localhost&port=15433&user=testsuite
+      dbconnection#env: DB_CONNECTION
+      dns_resolver: async
+      sync-start: true
+    server:
+      listener:
+        port: 8080
+        task_processor: main-task-processor
+    tests-control:
+      load-enabled: $is-testing
+      method: POST
+      path: /tests/{action}
+      skip-unregistered-testpoints: true
+      task_processor: main-task-processor
+      testpoint-url: http://localhost:36671/testpoint
+    testsuite-support:
+      testsuite-grpc-is-tls-enabled: false
+      testsuite-increased-timeout: 30s
+      testsuite-periodic-dumps-enabled: $userver-dumps-periodic
+      testsuite-pg-execute-timeout: 35s
+      testsuite-pg-readonly-master-expected: true
+      testsuite-pg-statement-timeout: 30s
+      testsuite-redis-timeout-all: 30s
+      testsuite-redis-timeout-connect: 40s
+      testsuite-redis-timeout-single: 30s
+      testsuite-tasks-enabled: false
+  default_task_processor: main-task-processor
+  task_processors:
+    fs-task-processor:
+      worker_threads: $worker-fs-threads
+    main-task-processor:
+      worker_threads: $worker-threads
+config_vars: /home/user/social_net_service/build-release/Testing/Temporary/social_net_service/config_vars.yaml

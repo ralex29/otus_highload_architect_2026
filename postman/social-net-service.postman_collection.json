@@ -1,0 +1,745 @@
+{
+	"info": {
+		"_postman_id": "3e26ace3-8ecf-4f8f-8b84-1482c0133cef",
+		"name": "Social-net-service",
+		"description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "51215906",
+		"_collection_link": "https://smartnlg-alexey-rogozhin-7651064.postman.co/workspace/Alexey-Rogozhin's-Workspace~ea97b87f-921c-41fd-87bd-512a96dc276e/collection/51215906-3e26ace3-8ecf-4f8f-8b84-1482c0133cef?action=share&source=collection_link&creator=51215906"
+	},
+	"item": [
+		{
+			"name": "login",
+			"item": [
+				{
+					"name": "Упрощенный процесс аутентификации путем передачи идентификатор пользователя и получения токена для дальнейшего прохождения авторизации",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"dcd08410-6524-4955-a536-c35e5ea7a554\",\n  \"password\": \"Секретная строка\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Упрощенный процесс аутентификации путем передачи идентификатор пользователя и получения токена для дальнейшего прохождения авторизации"
+					},
+					"response": [
+						{
+							"name": "Успешная аутентификация",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": \"string\",\n  \"password\": \"Секретная строка\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"token\": \"e4d2e6b0-cde2-42c5-aac3-0b8316f21e58\"\n}"
+						},
+						{
+							"name": "Невалидные данные",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": \"string\",\n  \"password\": \"Секретная строка\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Пользователь не найден",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": \"string\",\n  \"password\": \"Секретная строка\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Ошибка сервера",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": \"string\",\n  \"password\": \"Секретная строка\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Retry-After",
+									"value": "3634",
+									"description": {
+										"content": "Время, через которое еще раз нужно сделать запрос",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+						},
+						{
+							"name": "Ошибка сервера",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": \"string\",\n  \"password\": \"Секретная строка\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"status": "Service Unavailable",
+							"code": 503,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Retry-After",
+									"value": "3634",
+									"description": {
+										"content": "Время, через которое еще раз нужно сделать запрос",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "register",
+					"item": [
+						{
+							"name": "Регистрация нового пользователя",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"first_name\": \"Имя\",\n  \"second_name\": \"Фамилия\",\n  \"birthdate\": \"2017-02-01\",\n  \"biography\": \"Хобби, интересы и т.п.\",\n  \"city\": \"Москва\",\n  \"password\": \"Секретная строка\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/user/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"user",
+										"register"
+									]
+								},
+								"description": "Регистрация нового пользователя"
+							},
+							"response": [
+								{
+									"name": "Успешная регистрация",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"first_name\": \"Имя\",\n  \"second_name\": \"Фамилия\",\n  \"birthdate\": \"2017-02-01\",\n  \"biography\": \"Хобби, интересы и т.п.\",\n  \"city\": \"Москва\",\n  \"password\": \"Секретная строка\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/user/register",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												"register"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"user_id\": \"e4d2e6b0-cde2-42c5-aac3-0b8316f21e58\"\n}"
+								},
+								{
+									"name": "Невалидные данные",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"first_name\": \"Имя\",\n  \"second_name\": \"Фамилия\",\n  \"birthdate\": \"2017-02-01\",\n  \"biography\": \"Хобби, интересы и т.п.\",\n  \"city\": \"Москва\",\n  \"password\": \"Секретная строка\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/user/register",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												"register"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Ошибка сервера",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"first_name\": \"Имя\",\n  \"second_name\": \"Фамилия\",\n  \"birthdate\": \"2017-02-01\",\n  \"biography\": \"Хобби, интересы и т.п.\",\n  \"city\": \"Москва\",\n  \"password\": \"Секретная строка\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/user/register",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												"register"
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Retry-After",
+											"value": "3634",
+											"description": {
+												"content": "Время, через которое еще раз нужно сделать запрос",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+								},
+								{
+									"name": "Ошибка сервера",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"first_name\": \"Имя\",\n  \"second_name\": \"Фамилия\",\n  \"birthdate\": \"2017-02-01\",\n  \"biography\": \"Хобби, интересы и т.п.\",\n  \"city\": \"Москва\",\n  \"password\": \"Секретная строка\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/user/register",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												"register"
+											]
+										}
+									},
+									"status": "Service Unavailable",
+									"code": 503,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Retry-After",
+											"value": "3634",
+											"description": {
+												"content": "Время, через которое еще раз нужно сделать запрос",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "get",
+					"item": [
+						{
+							"name": "{id}",
+							"item": [
+								{
+									"name": "Получение анкеты пользователя",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/user/get/:id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"user",
+												"get",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "string",
+													"description": "Идентификатор пользователя"
+												}
+											]
+										},
+										"description": "Получение анкеты пользователя"
+									},
+									"response": [
+										{
+											"name": "Успешное получение анкеты пользователя",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/user/get/:id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"user",
+														"get",
+														":id"
+													],
+													"variable": [
+														{
+															"key": "id",
+															"value": ""
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"id\": \"string\",\n  \"first_name\": \"Имя\",\n  \"second_name\": \"Фамилия\",\n  \"sex\": \"man\",\n  \"birthdate\": \"2017-02-01\",\n  \"biography\": \"Хобби, интересы и т.п.\",\n  \"city\": \"Москва\"\n}"
+										},
+										{
+											"name": "Невалидные данные",
+											"originalRequest": {
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/user/get/:id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"user",
+														"get",
+														":id"
+													],
+													"variable": [
+														{
+															"key": "id"
+														}
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Анкета не найдена",
+											"originalRequest": {
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/user/get/:id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"user",
+														"get",
+														":id"
+													],
+													"variable": [
+														{
+															"key": "id"
+														}
+													]
+												}
+											},
+											"status": "Not Found",
+											"code": 404,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Ошибка сервера",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/user/get/:id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"user",
+														"get",
+														":id"
+													],
+													"variable": [
+														{
+															"key": "id"
+														}
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Retry-After",
+													"value": "3634",
+													"description": {
+														"content": "Время, через которое еще раз нужно сделать запрос",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": ""
+		}
+	]
+}

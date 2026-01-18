@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: social-net-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: social_net_service_db_1
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    ports:
+      - "15433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgresql/schemas:/docker-entrypoint-initdb.d/schemas:ro
+      - ./postgresql/data:/docker-entrypoint-initdb.d/data:ro
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_service_db_1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - social-net-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: social-net-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION: postgresql://testsuite:testsuite@postgres:5432/social_net_service_db_1
+      CPU_LIMIT: "4"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./configs:/app/configs:ro
+    networks:
+      - social-net-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  social-net-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
