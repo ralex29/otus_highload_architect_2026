@@ -3,8 +3,9 @@
 #include <userver/components/component.hpp>
 #include <userver/server/handlers/http_handler_base.hpp>
 #include <userver/server/handlers/http_handler_json_base.hpp>
-
 #include <userver/storages/postgres/cluster.hpp>
+
+#include "auth/user_info_cache.hpp"
 
 namespace social_net_service::auth
 {
@@ -20,6 +21,7 @@ namespace social_net_service::auth
 
     private:
         userver::storages::postgres::ClusterPtr pg_cluster_;
+        AuthCache& auth_cache_;
 
         std::tuple< std::string, bool> GenerateToken( const boost::uuids::uuid& user_id ) const;
     };

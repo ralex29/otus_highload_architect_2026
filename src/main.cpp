@@ -17,6 +17,7 @@
 #include "auth/login.hpp"
 #include "auth/auth_bearer.hpp"
 #include "auth/user_info_cache.hpp"
+#include "user/user_search_handler.hpp"
 #include "user/user_register_handler.hpp"
 #include "db/data_base.hpp"
 
@@ -36,6 +37,7 @@ int main(int argc, char* argv[])
         .Append<userver::components::Postgres>(social_net_service::DataBase::Name)
         .Append<social_net_service::user::UserRegisterHandler>()
         .Append<social_net_service::user::UserGetHandler>()
+        .Append<social_net_service::user::UserSearchHandler>()
         .Append<social_net_service::auth::Login>();
 
     return userver::utils::DaemonMain(argc, argv, component_list);

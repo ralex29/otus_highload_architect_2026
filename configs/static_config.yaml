@@ -73,6 +73,16 @@ components_manager:
           path: /user/get/*
           method: GET
           task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-user-search:
+          path: /user/search/*
+          method: GET
+          task_processor: main-task-processor
 
         postgres-db-1:
             dbconnection: $pg-connection

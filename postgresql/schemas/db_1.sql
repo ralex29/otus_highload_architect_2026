@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS social_net_schema.users (
     salt  TEXT NOT NULL
 );
 
+CREATE INDEX idx_names ON social_net_schema.users
+    (first_name text_pattern_ops, second_name text_pattern_ops);
+
 DROP SCHEMA IF EXISTS auth_schema CASCADE;
 
 CREATE SCHEMA IF NOT EXISTS auth_schema;

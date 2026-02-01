@@ -30,6 +30,8 @@ add_library(
         src/user/user_register_handler.cpp
         src/user/password_hasher.cpp
         src/user/user_get_handler.cpp
+        src/user/user_search_handler.cpp
+        src/user/user_search_handler.hpp
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs

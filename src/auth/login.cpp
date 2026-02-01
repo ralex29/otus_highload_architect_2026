@@ -61,7 +61,32 @@ namespace social_net_service::auth
           , pg_cluster_(
               component_context.FindComponent<userver::components::Postgres>(DataBase::Name)
                                .GetCluster())
+          , auth_cache_(component_context.FindComponent<AuthCache>())
     {
+    }
+
+    std::tuple< std::string, bool> Login::GenerateToken( const boost::uuids::uuid& user_id ) const
+    {
+        const userver::server::auth::UserAuthInfo::Ticket token { GenerateBearerToken() };
+        const std::vector<std::string> scopes = {"read","user"};
+        const auto result = pg_cluster_->Execute(
+            userver::storages::postgres::ClusterHostType::kMaster,
+            "INSERT INTO auth_schema.tokens (token, user_id, scopes) "
+            "VALUES ($1, $2, $3) "
+            "RETURNING updated",
+            token,
+            user_id,
+            scopes
+        );
+        if (result.IsEmpty())
+        {
+            return {"", false};
+        }
+        else
+        {
+            auth_cache_.InvalidateAsync(userver::cache::UpdateType::kIncremental);
+            return {token.GetUnderlying(), true};
+        }
     }
 
     userver::formats::json::Value Login::HandleRequestJsonThrow(
@@ -111,24 +136,5 @@ namespace social_net_service::auth
         return userver::formats::json::MakeObject("token", token);
 
         UASSERT(false);
-    }
-
-    std::tuple< std::string, bool> Login::GenerateToken( const boost::uuids::uuid& user_id ) const
-    {
-        const userver::server::auth::UserAuthInfo::Ticket token { GenerateBearerToken() };
-        const std::vector<std::string> scopes = {"read","user"};
-        const auto result = pg_cluster_->Execute(
-            userver::storages::postgres::ClusterHostType::kMaster,
-            "INSERT INTO auth_schema.tokens (token, user_id, scopes) "
-            "VALUES ($1, $2, $3) "
-            "RETURNING updated",
-            token,
-            user_id,
-            scopes
-            );
-        if (result.IsEmpty())
-            return {"", false};
-        else
-            return {token.GetUnderlying(), true};
     }
 } // social_net_service::au
