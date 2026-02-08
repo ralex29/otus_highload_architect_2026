@@ -73,11 +73,11 @@ components_manager:
           path: /user/get/*
           method: GET
           task_processor: main-task-processor
-          auth:
-            types:
-              - bearer
-            scopes:
-              - read
+#          auth:
+#            types:
+#              - bearer
+#            scopes:
+#              - read
 
         handler-user-search:
           path: /user/search/*

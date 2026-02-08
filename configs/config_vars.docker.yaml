@@ -7,4 +7,4 @@ is-testing: false
 server-port: 8080
 
 # Docker environment database connection
-pg-connection: postgresql://testsuite:testsuite@postgres:5432/social_net_service_db_1
+pg-connection: postgresql://testsuite:testsuite@postgres-master:5432,postgres-replica-1:5432,postgres-replica-2:5432/social_net_service_db_1
