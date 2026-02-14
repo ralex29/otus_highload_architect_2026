@@ -4,6 +4,10 @@ FROM ghcr.io/userver-framework/ubuntu-22.04-userver-pg-dev:v2.14 AS builder
 # Prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Install hiredis (required for userver::redis)
+RUN apt-get update && apt-get install -y --no-install-recommends libhiredis-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 
@@ -31,8 +35,8 @@ RUN cd build-release && make install DESTDIR=/install
 # Stage 2: Runtime
 FROM ghcr.io/userver-framework/ubuntu-22.04-userver-pg:v2.14 AS runtime
 
-# Install curl for healthcheck if not present
-RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+# Install curl for healthcheck and hiredis runtime library
+RUN apt-get update && apt-get install -y --no-install-recommends curl libhiredis0.14 && \
     rm -rf /var/lib/apt/lists/*
 
 # Create application user

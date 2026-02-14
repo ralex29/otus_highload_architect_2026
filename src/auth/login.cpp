@@ -103,7 +103,7 @@ namespace social_net_service::auth
         const auto user_id = generator( request_json[kUserIdFieldName].As<std::string>());
 
         const auto result = pg_cluster_->Execute(
-            userver::storages::postgres::ClusterHostType::kSlave,
+            userver::storages::postgres::ClusterHostType::kMaster,
             "SELECT password_hash, salt "
             "FROM social_net_schema.users "
             "WHERE user_id = $1",

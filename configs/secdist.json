@@ -1,0 +1,9 @@
+{
+  "redis_settings": {
+    "feed-redis": {
+      "password": "",
+      "sentinels": [{"host": "localhost", "port": 6379}],
+      "shards": [{"name": "test_standalone_master0"}]
+    }
+  }
+}

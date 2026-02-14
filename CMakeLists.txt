@@ -8,6 +8,7 @@ find_package(
     userver
     COMPONENTS core #
                postgresql
+               redis
     QUIET
 )
 if(NOT userver_FOUND)
@@ -32,11 +33,28 @@ add_library(
         src/user/user_get_handler.cpp
         src/user/user_search_handler.cpp
         src/user/user_search_handler.hpp
+        src/friend/friend_add_handler.cpp
+        src/friend/friend_add_handler.hpp
+        src/friend/friend_delete_handler.cpp
+        src/friend/friend_delete_handler.hpp
+        src/post/post_create_handler.cpp
+        src/post/post_create_handler.hpp
+        src/post/post_update_handler.cpp
+        src/post/post_update_handler.hpp
+        src/post/post_delete_handler.cpp
+        src/post/post_delete_handler.hpp
+        src/post/post_get_handler.cpp
+        src/post/post_get_handler.hpp
+        src/post/post_feed_cache.cpp
+        src/post/post_feed_cache.hpp
+        src/post/post_feed_handler.cpp
+        src/post/post_feed_handler.hpp
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs
     PUBLIC userver::core #
            userver::postgresql
+           userver::redis
 )
 
 

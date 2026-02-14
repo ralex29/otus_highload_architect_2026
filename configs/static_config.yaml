@@ -73,16 +73,105 @@ components_manager:
           path: /user/get/*
           method: GET
           task_processor: main-task-processor
-#          auth:
-#            types:
-#              - bearer
-#            scopes:
-#              - read
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
 
         handler-user-search:
           path: /user/search/*
           method: GET
           task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-friend-add:
+          path: /friend/add/*
+          method: PUT
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-friend-delete:
+          path: /friend/delete/*
+          method: PUT
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-post-create:
+          path: /post/create
+          method: POST
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-post-update:
+          path: /post/update
+          method: PUT
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-post-delete:
+          path: /post/delete/*
+          method: PUT
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-post-get:
+          path: /post/get/*
+          method: GET
+          task_processor: main-task-processor
+
+        handler-post-feed:
+          path: /post/feed
+          method: GET
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        post-feed-cache: {}
+
+        secdist: {}
+        default-secdist-provider:
+            config: $secdist-path
+            missing-ok: true
+            environment-secrets-key: SECDIST_CONFIG
+
+        key-value-database:
+            groups:
+              - config_name: feed-redis
+                db: feed-redis
+                sharding_strategy: RedisStandalone
+                allow_reads_from_master: true
+            subscribe_groups: []
+            thread_pools:
+                redis_thread_pool_size: 4
+                sentinel_thread_pool_size: 1
 
         postgres-db-1:
             dbconnection: $pg-connection

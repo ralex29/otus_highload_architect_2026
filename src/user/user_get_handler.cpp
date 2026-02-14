@@ -66,7 +66,7 @@ namespace social_net_service::user
         }
         LOG_DEBUG() << "received id " << user_id;
         const auto result = pg_cluster_->Execute(
-            userver::storages::postgres::ClusterHostType::kSlave,
+            userver::storages::postgres::ClusterHostType::kMaster,
             "SELECT user_id, first_name, second_name, birthdate, sex, biography, city "
             "FROM social_net_schema.users "
             "WHERE user_id = $1",
