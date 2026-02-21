@@ -37,6 +37,20 @@ CREATE TABLE IF NOT EXISTS social_net_schema.posts (
 CREATE INDEX idx_posts_author ON social_net_schema.posts(author_user_id);
 CREATE INDEX idx_posts_created ON social_net_schema.posts(created_at DESC);
 
+CREATE TABLE IF NOT EXISTS social_net_schema.messages (
+    message_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    from_user_id UUID NOT NULL REFERENCES social_net_schema.users(user_id),
+    to_user_id UUID NOT NULL REFERENCES social_net_schema.users(user_id),
+    text TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_messages_dialog ON social_net_schema.messages(
+    LEAST(from_user_id, to_user_id),
+    GREATEST(from_user_id, to_user_id),
+    created_at
+);
+
 DROP SCHEMA IF EXISTS auth_schema CASCADE;
 
 CREATE SCHEMA IF NOT EXISTS auth_schema;

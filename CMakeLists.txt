@@ -49,6 +49,11 @@ add_library(
         src/post/post_feed_cache.hpp
         src/post/post_feed_handler.cpp
         src/post/post_feed_handler.hpp
+        src/dialog/dialog_utils.hpp
+        src/dialog/dialog_send_handler.cpp
+        src/dialog/dialog_send_handler.hpp
+        src/dialog/dialog_list_handler.cpp
+        src/dialog/dialog_list_handler.hpp
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs
@@ -66,11 +71,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_objs)
 add_executable(${PROJECT_NAME}_unittest src/greeting_test.cpp)
 target_link_libraries(${PROJECT_NAME}_unittest PRIVATE ${PROJECT_NAME}_objs userver::utest)
 add_google_tests(${PROJECT_NAME}_unittest)
+set_tests_properties(${PROJECT_NAME}_unittest PROPERTIES
+    ENVIRONMENT "USERVER_ENABLE_STACK_USAGE_MONITOR=0")
 
 # Benchmarks
 add_executable(${PROJECT_NAME}_benchmark src/greeting_benchmark.cpp)
 target_link_libraries(${PROJECT_NAME}_benchmark PRIVATE ${PROJECT_NAME}_objs userver::ubench)
 add_google_benchmark_tests(${PROJECT_NAME}_benchmark)
+set_tests_properties(${PROJECT_NAME}_benchmark PROPERTIES
+    ENVIRONMENT "USERVER_ENABLE_STACK_USAGE_MONITOR=0")
 
 # Functional testing
 userver_testsuite_add_simple()

@@ -22,7 +22,7 @@ services:
       - "15433:5432"
     volumes:
       - postgres-master-data:/var/lib/postgresql/data
-      - ./postgresql/schemas:/docker-entrypoint-initdb.d/schemas:ro
+      - ./postgresql/schemas/db_1.sql:/docker-entrypoint-initdb.d/schemas/db_1.sql:ro
       - ./postgresql/data:/docker-entrypoint-initdb.d/data:ro
       - ./init-db.sh:/docker-entrypoint-initdb.d/01-init-db.sh:ro
       - ./postgresql/setup-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
@@ -93,6 +93,98 @@ services:
 #    networks:
 #      - social-net-network
 
+  citus-coordinator:
+    image: citusdata/citus:12.1
+    container_name: social-net-citus-coordinator
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_DB: social_net_dialogs
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "15436:5432"
+    volumes:
+      - citus-coordinator-data:/var/lib/postgresql/data
+      - ./postgresql/schemas/citus_coordinator.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./postgresql/init-citus.sh:/docker-entrypoint-initdb.d/02-init-citus.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_dialogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - social-net-network
+
+  citus-worker-0:
+    image: citusdata/citus:12.1
+    container_name: social-net-citus-worker-0
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_DB: social_net_dialogs
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "15437:5432"
+    volumes:
+      - citus-worker-0-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_dialogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - social-net-network
+
+  citus-worker-1:
+    image: citusdata/citus:12.1
+    container_name: social-net-citus-worker-1
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_DB: social_net_dialogs
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "15438:5432"
+    volumes:
+      - citus-worker-1-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_dialogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - social-net-network
+
   redis:
     image: redis:7-alpine
     container_name: social-net-redis
@@ -117,10 +209,13 @@ services:
     depends_on:
       postgres-master:
         condition: service_healthy
+      citus-coordinator:
+        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       DB_CONNECTION: postgresql://testsuite:testsuite@postgres-master:5432/social_net_service_db_1
+      DB_CITUS_CONNECTION: postgresql://testsuite:testsuite@citus-coordinator:5432/social_net_dialogs
       CPU_LIMIT: "4"
       SECDIST_CONFIG: '{"redis_settings":{"feed-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}}}'
     ports:
@@ -147,6 +242,12 @@ networks:
 
 volumes:
   postgres-master-data:
+    driver: local
+  citus-coordinator-data:
+    driver: local
+  citus-worker-0-data:
+    driver: local
+  citus-worker-1-data:
     driver: local
 #  postgres-replica-1-data:
 #    driver: local

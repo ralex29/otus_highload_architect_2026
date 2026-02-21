@@ -9,4 +9,6 @@ server-port: 8080
 # Docker environment database connection
 pg-connection: postgresql://testsuite:testsuite@postgres-master:5432/social_net_service_db_1
 
+pg-citus-connection: postgresql://testsuite:testsuite@citus-coordinator:5432/social_net_dialogs
+
 secdist-path: /app/configs/secdist.json

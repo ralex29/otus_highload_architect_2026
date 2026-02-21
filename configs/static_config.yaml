@@ -154,6 +154,26 @@ components_manager:
             scopes:
               - read
 
+        handler-dialog-send:
+          path: /dialog/{user_id}/send
+          method: POST
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        handler-dialog-list:
+          path: /dialog/{user_id}/list
+          method: GET
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
         post-feed-cache: {}
 
         secdist: {}
@@ -176,6 +196,14 @@ components_manager:
         postgres-db-1:
             dbconnection: $pg-connection
             dbconnection#env: DB_CONNECTION
+            blocking_task_processor: fs-task-processor
+            dns_resolver: async
+            sync-start: true
+            connlimit_mode: manual
+
+        postgres-citus:
+            dbconnection: $pg-citus-connection
+            dbconnection#env: DB_CITUS_CONNECTION
             blocking_task_processor: fs-task-processor
             dns_resolver: async
             sync-start: true

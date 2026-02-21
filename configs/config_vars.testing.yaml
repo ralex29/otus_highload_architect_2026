@@ -9,4 +9,7 @@ server-port: 8080
 # change to URI of your postgres database
 pg-connection: postgresql://testsuite@localhost:15433/social_net_service_db_1
 
+pg-shard-0-connection: postgresql://testsuite@localhost:15436/social_net_service_shard_0
+pg-shard-1-connection: postgresql://testsuite@localhost:15437/social_net_service_shard_1
+
 secdist-path: configs/secdist.json

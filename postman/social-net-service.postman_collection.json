@@ -2975,6 +2975,619 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "dialog",
+			"item": [
+				{
+					"name": "{user_id}",
+					"item": [
+						{
+							"name": "send",
+							"item": [
+								{
+									"name": "/dialog/:user_id/send",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{bearerToken}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"text\": \"Привет, как дела?\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/dialog/:user_id/send",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"dialog",
+												":user_id",
+												"send"
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "string"
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Успешно отправлено сообщение",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"text\": \"Привет, как дела?\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/send",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"send"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Невалидные данные ввода",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"text\": \"Привет, как дела?\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/send",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"send"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Неавторизованный доступ",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"text\": \"Привет, как дела?\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/send",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"send"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Unauthorized",
+											"code": 401,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Ошибка сервера",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"text\": \"Привет, как дела?\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/send",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"send"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Retry-After",
+													"value": "3634",
+													"description": {
+														"content": "Время, через которое еще раз нужно сделать запрос",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+										},
+										{
+											"name": "Ошибка сервера",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"text\": \"Привет, как дела?\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/send",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"send"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Service Unavailable",
+											"code": 503,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Retry-After",
+													"value": "3634",
+													"description": {
+														"content": "Время, через которое еще раз нужно сделать запрос",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "list",
+							"item": [
+								{
+									"name": "/dialog/:user_id/list",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{bearerToken}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/dialog/:user_id/list",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"dialog",
+												":user_id",
+												"list"
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "string"
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "Диалог между двумя пользователями",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/list",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"list"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "[\n  {\n    \"from\": \"string\",\n    \"to\": \"string\",\n    \"text\": \"Привет, как дела?\"\n  },\n  {\n    \"from\": \"string\",\n    \"to\": \"string\",\n    \"text\": \"Привет, как дела?\"\n  }\n]"
+										},
+										{
+											"name": "Невалидные данные ввода",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/list",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"list"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Неавторизованный доступ",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/list",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"list"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Unauthorized",
+											"code": 401,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": [],
+											"body": ""
+										},
+										{
+											"name": "Ошибка сервера",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/list",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"list"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Internal Server Error",
+											"code": 500,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Retry-After",
+													"value": "3634",
+													"description": {
+														"content": "Время, через которое еще раз нужно сделать запрос",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+										},
+										{
+											"name": "Ошибка сервера",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer <token>",
+														"description": "Added as a part of security scheme: bearer"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/dialog/:user_id/list",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"dialog",
+														":user_id",
+														"list"
+													],
+													"variable": [
+														{
+															"key": "user_id"
+														}
+													]
+												}
+											},
+											"status": "Service Unavailable",
+											"code": 503,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Retry-After",
+													"value": "3634",
+													"description": {
+														"content": "Время, через которое еще раз нужно сделать запрос",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"code\": 9504\n}"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
 		}
 	],
 	"event": [
