@@ -6,7 +6,7 @@
 
 namespace social_net_service::post
 {
-    class PostFeedCache;
+    class PostFeedPublisher;
 
     class PostCreateHandler final : public userver::server::handlers::HttpHandlerJsonBase
     {
@@ -22,6 +22,6 @@ namespace social_net_service::post
 
     private:
         userver::storages::postgres::ClusterPtr pg_cluster_;
-        PostFeedCache& feed_cache_;
+        PostFeedPublisher& publisher_;
     };
 } // social_net_service::post

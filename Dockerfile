@@ -1,12 +1,8 @@
 # Stage 1: Builder
-FROM ghcr.io/userver-framework/ubuntu-22.04-userver-pg-dev:v2.14 AS builder
+FROM ghcr.io/userver-framework/ubuntu-24.04-userver:latest AS builder
 
 # Prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Install hiredis (required for userver::redis)
-RUN apt-get update && apt-get install -y --no-install-recommends libhiredis-dev && \
-    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -33,11 +29,18 @@ RUN cd build-release && make -j$(nproc)
 RUN cd build-release && make install DESTDIR=/install
 
 # Stage 2: Runtime
-FROM ghcr.io/userver-framework/ubuntu-22.04-userver-pg:v2.14 AS runtime
+FROM ubuntu:24.04 AS runtime
 
-# Install curl for healthcheck and hiredis runtime library
-RUN apt-get update && apt-get install -y --no-install-recommends curl libhiredis0.14 && \
-    rm -rf /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libssl3 \
+    libpq5 \
+    libhiredis1.1.0 \
+    libjemalloc2 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create application user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
@@ -48,6 +51,21 @@ RUN mkdir -p /app/configs && chown -R appuser:appuser /app
 # Copy installed files from builder
 COPY --from=builder /install/usr/local /usr/local
 COPY --from=builder /app/configs /app/configs
+
+# Copy userver runtime shared libraries
+COPY --from=builder /usr/lib/libuserver-*.so* /usr/lib/
+COPY --from=builder /usr/lib/libamqpcpp.so* /usr/lib/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost_*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libfmt.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcctz.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libre2.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcryptopp.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libyaml-cpp.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libev.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libzstd.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libnghttp2.so* /usr/lib/x86_64-linux-gnu/
+
+RUN ldconfig
 
 # Set working directory
 WORKDIR /app
@@ -63,5 +81,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/ping || exit 1
 
 # Run the application
-# Use docker config if available, fallback to default
 CMD ["/usr/local/bin/social_net_service", "--config", "/app/configs/static_config.yaml", "--config_vars", "/app/configs/config_vars.docker.yaml"]

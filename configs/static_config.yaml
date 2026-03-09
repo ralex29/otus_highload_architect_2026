@@ -154,6 +154,36 @@ components_manager:
             scopes:
               - read
 
+        handler-post-feed-ws:
+          path: /post/feed/posted
+          method: GET
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
+        post-feed-ws-manager: {}
+
+        rabbitmq-driver:
+            secdist_alias: rabbitmq-driver
+            min_pool_size: 2
+            max_pool_size: 10
+            max_in_flight_requests: 10
+            use_secure_connection: false
+
+        post-feed-publisher:
+            rabbit_name: rabbitmq-driver
+            exchange: feed-exchange
+
+        post-feed-consumer:
+            rabbit_name: rabbitmq-driver
+            queue: feed-materialization
+            prefetch_count: 100
+
+        ws-fanout-consumer: {}
+
         handler-dialog-send:
           path: /dialog/{user_id}/send
           method: POST

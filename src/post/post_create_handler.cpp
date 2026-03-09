@@ -1,7 +1,7 @@
 #include "post_create_handler.hpp"
 
 #include "db/data_base.hpp"
-#include "post_feed_cache.hpp"
+#include "post_feed_publisher.hpp"
 
 #include <userver/components/component_config.hpp>
 #include <userver/components/component_context.hpp>
@@ -37,8 +37,8 @@ namespace social_net_service::post
         , pg_cluster_(
               component_context.FindComponent<userver::components::Postgres>(DataBase::Name)
                                .GetCluster())
-        , feed_cache_(
-              component_context.FindComponent<PostFeedCache>())
+        , publisher_(
+              component_context.FindComponent<PostFeedPublisher>())
     {
     }
 
@@ -67,7 +67,7 @@ namespace social_net_service::post
 
         const auto post_id = result.AsSingleRow<boost::uuids::uuid>();
 
-        feed_cache_.OnPostCreated(author_id, post_id, text);
+        publisher_.Publish(author_id, post_id, text);
 
         return userver::formats::json::MakeObject("id", boost::uuids::to_string(post_id));
     }

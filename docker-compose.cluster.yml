@@ -35,64 +35,6 @@ services:
     networks:
       - social-net-network
 
-#  postgres-replica-1:
-#    image: postgres:15-alpine
-#    container_name: social-net-postgres-replica-1
-#    restart: unless-stopped
-#    environment:
-#      PGDATA: /var/lib/postgresql/data
-#      MASTER_HOST: postgres-master
-#      MASTER_PORT: "5432"
-#      REPLICATION_USER: replicator
-#      REPLICATION_PASSWORD: replicator_password
-#      APPLICATION_NAME: replica1
-#    entrypoint: /replica-entrypoint.sh
-#    ports:
-#      - "15434:5432"
-#    volumes:
-#      - postgres-replica-1-data:/var/lib/postgresql/data
-#      - ./postgresql/replica-entrypoint.sh:/replica-entrypoint.sh:ro
-#    depends_on:
-#      postgres-master:
-#        condition: service_healthy
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_service_db_1"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-#      start_period: 20s
-#    networks:
-#      - social-net-network
-#
-#  postgres-replica-2:
-#    image: postgres:15-alpine
-#    container_name: social-net-postgres-replica-2
-#    restart: unless-stopped
-#    environment:
-#      PGDATA: /var/lib/postgresql/data
-#      MASTER_HOST: postgres-master
-#      MASTER_PORT: "5432"
-#      REPLICATION_USER: replicator
-#      REPLICATION_PASSWORD: replicator_password
-#      APPLICATION_NAME: replica2
-#    entrypoint: /replica-entrypoint.sh
-#    ports:
-#      - "15435:5432"
-#    volumes:
-#      - postgres-replica-2-data:/var/lib/postgresql/data
-#      - ./postgresql/replica-entrypoint.sh:/replica-entrypoint.sh:ro
-#    depends_on:
-#      postgres-master:
-#        condition: service_healthy
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_service_db_1"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-#      start_period: 20s
-#    networks:
-#      - social-net-network
-
   citus-coordinator:
     image: citusdata/citus:12.1
     container_name: social-net-citus-coordinator
@@ -199,10 +141,15 @@ services:
       timeout: 5s
       retries: 5
 
-  rabbitmq:
+  rabbitmq-0:
     image: rabbitmq:3-management-alpine
-    container_name: social-net-rabbitmq
+    hostname: rabbit-0
+    container_name: rabbitmq-0
     restart: unless-stopped
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "shared-secret-cookie"
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -210,7 +157,44 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
+    networks:
+      - social-net-network
+
+  rabbitmq-1:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbit-1
+    container_name: rabbitmq-1
+    restart: unless-stopped
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "shared-secret-cookie"
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - social-net-network
+
+  rabbitmq-2:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbit-2
+    container_name: rabbitmq-2
+    restart: unless-stopped
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "shared-secret-cookie"
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - social-net-network
 
@@ -227,13 +211,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      rabbitmq:
+      rabbitmq-0:
         condition: service_healthy
     environment:
       DB_CONNECTION: postgresql://testsuite:testsuite@postgres-master:5432/social_net_service_db_1
       DB_CITUS_CONNECTION: postgresql://testsuite:testsuite@citus-coordinator:5432/social_net_dialogs
       CPU_LIMIT: "4"
-      SECDIST_CONFIG: '{"redis_settings":{"feed-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}},"rabbitmq_settings":{"rabbitmq-driver":{"hosts":["rabbitmq"],"port":5672,"login":"guest","password":"guest","vhost":"/"}}}'
+      SECDIST_CONFIG: '{"redis_settings":{"feed-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}},"rabbitmq_settings":{"rabbitmq-driver":{"hosts":["rabbit-0","rabbit-1","rabbit-2"],"port":5672,"login":"guest","password":"guest","vhost":"/"}}}'
     ports:
       - "8080"
     volumes:
@@ -265,7 +249,3 @@ volumes:
     driver: local
   citus-worker-1-data:
     driver: local
-#  postgres-replica-1-data:
-#    driver: local
-#  postgres-replica-2-data:
-#    driver: local

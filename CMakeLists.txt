@@ -9,6 +9,7 @@ find_package(
     COMPONENTS core #
                postgresql
                redis
+               rabbitmq
     QUIET
 )
 if(NOT userver_FOUND)
@@ -49,6 +50,16 @@ add_library(
         src/post/post_feed_cache.hpp
         src/post/post_feed_handler.cpp
         src/post/post_feed_handler.hpp
+        src/post/post_feed_ws_manager.cpp
+        src/post/post_feed_ws_manager.hpp
+        src/post/post_feed_ws_handler.cpp
+        src/post/post_feed_ws_handler.hpp
+        src/post/post_feed_publisher.cpp
+        src/post/post_feed_publisher.hpp
+        src/post/post_feed_consumer.cpp
+        src/post/post_feed_consumer.hpp
+        src/post/ws_fanout_consumer.cpp
+        src/post/ws_fanout_consumer.hpp
         src/dialog/dialog_utils.hpp
         src/dialog/dialog_send_handler.cpp
         src/dialog/dialog_send_handler.hpp
@@ -60,6 +71,7 @@ target_link_libraries(
     PUBLIC userver::core #
            userver::postgresql
            userver::redis
+           userver::rabbitmq
 )
 
 
