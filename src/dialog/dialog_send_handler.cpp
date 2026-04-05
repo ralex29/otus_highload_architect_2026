@@ -1,14 +1,15 @@
 #include "dialog_send_handler.hpp"
 
-#include "dialog_utils.hpp"
-
 #include <userver/components/component_config.hpp>
 #include <userver/components/component_context.hpp>
 #include <userver/formats/json/inline.hpp>
 #include <userver/formats/json/value.hpp>
-#include <userver/storages/postgres/component.hpp>
+#include <userver/storages/redis/component.hpp>
+#include <userver/storages/redis/reply.hpp>
 
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/string_generator.hpp>
 
 namespace
@@ -33,7 +34,9 @@ namespace social_net_service::dialog
         const userver::components::ComponentConfig& config,
         const userver::components::ComponentContext& component_context)
         : HttpHandlerJsonBase(config, component_context)
-        , cluster_(component_context.FindComponent<userver::components::Postgres>("postgres-citus").GetCluster())
+        , redis_client_(component_context
+              .FindComponent<userver::components::Redis>("key-value-database")
+              .GetClient("feed-redis"))
     {
     }
 
@@ -50,11 +53,11 @@ namespace social_net_service::dialog
 
         const auto from_user_id = request_context.GetData<boost::uuids::uuid>("user_id");
 
-        boost::uuids::string_generator generator;
+        boost::uuids::string_generator str_gen;
         boost::uuids::uuid to_user_id;
         try
         {
-            to_user_id = generator(request.GetPathArg("user_id"));
+            to_user_id = str_gen(request.GetPathArg("user_id"));
         }
         catch (const std::runtime_error&)
         {
@@ -63,17 +66,21 @@ namespace social_net_service::dialog
         }
 
         const auto text = request_json[kTextFieldName].As<std::string>();
-        const int bucket = dialog::GetVirtualBucket(from_user_id, to_user_id);
+        const auto msg_id = boost::uuids::to_string(boost::uuids::random_generator()());
 
-        cluster_->Execute(
-            userver::storages::postgres::ClusterHostType::kMaster,
-            "INSERT INTO dialog_schema.messages (from_user_id, to_user_id, text, virtual_bucket) "
-            "VALUES ($1, $2, $3, $4)",
-            from_user_id,
-            to_user_id,
-            text,
-            bucket
-        );
+        redis_client_->GenericCommand<userver::storages::redis::ReplyData>(
+            "FCALL",
+            {
+                "dialog_send",
+                "0",
+                boost::uuids::to_string(from_user_id),
+                boost::uuids::to_string(to_user_id),
+                text,
+                msg_id
+            },
+            0,
+            {}
+        ).Get();
 
         request.SetResponseStatus(userver::server::http::HttpStatus::kOk);
         return {};

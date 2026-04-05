@@ -3,6 +3,7 @@ NPROCS ?= $(shell nproc)
 CLANG_FORMAT ?= clang-format
 DOCKER_IMAGE ?= ghcr.io/userver-framework/ubuntu-24.04-userver:latest
 CMAKE_OPTS ?=
+DOCKER_COMPOSE ?= docker compose
 # If we're under TTY, pass "-it" to "docker run"
 DOCKER_ARGS = $(shell /bin/test -t 0 && /bin/echo -it || echo)
 PRESETS ?= debug release debug-custom release-custom
@@ -81,19 +82,32 @@ $(addprefix docker-cmake-, $(PRESETS)) $(addprefix docker-build-, $(PRESETS)) $(
 .PHONY: docker-up docker-down docker-restart docker-logs docker-build-service docker-clean-data
 
 docker-up:
-	docker-compose up -d
+	$(DOCKER_COMPOSE) up -d
 
 docker-down:
-	docker-compose down
+	$(DOCKER_COMPOSE) down
 
 docker-restart:
-	docker-compose restart
+	$(DOCKER_COMPOSE) restart
 
 docker-logs:
-	docker-compose logs -f
+	$(DOCKER_COMPOSE) logs -f
 
 docker-build-service:
-	docker-compose build --no-cache app
+	$(DOCKER_COMPOSE) build --no-cache app
 
 docker-clean-data:
-	docker-compose down -v
+	$(DOCKER_COMPOSE) down -v
+
+# Redis Functions for dialog module
+.PHONY: load-redis-dialog-functions
+load-redis-dialog-functions:
+	bash scripts/redis/load_dialog_functions.sh
+
+# Dialog load testing via JMeter
+.PHONY: run-dialog-load-test run-dialog-load-test-start
+run-dialog-load-test:
+	bash scripts/run-dialog-load-test.sh
+
+run-dialog-load-test-start:
+	bash scripts/run-dialog-load-test.sh --start

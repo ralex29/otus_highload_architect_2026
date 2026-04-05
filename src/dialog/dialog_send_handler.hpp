@@ -2,7 +2,7 @@
 
 #include <userver/components/component.hpp>
 #include <userver/server/handlers/http_handler_json_base.hpp>
-#include <userver/storages/postgres/cluster.hpp>
+#include <userver/storages/redis/client.hpp>
 
 namespace social_net_service::dialog
 {
@@ -19,6 +19,6 @@ namespace social_net_service::dialog
             userver::server::request::RequestContext& context) const override;
 
     private:
-        userver::storages::postgres::ClusterPtr cluster_;
+        std::shared_ptr<userver::storages::redis::Client> redis_client_;
     };
 } // social_net_service::dialog
