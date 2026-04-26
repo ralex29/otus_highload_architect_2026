@@ -96,13 +96,16 @@ docker-logs:
 docker-build-service:
 	$(DOCKER_COMPOSE) build --no-cache app
 
+docker-build-chat-service:
+	$(DOCKER_COMPOSE) build --no-cache chat-service
+
 docker-clean-data:
 	$(DOCKER_COMPOSE) down -v
 
-# Redis Functions for dialog module
+# Redis Functions for dialog module (owned by chat-service)
 .PHONY: load-redis-dialog-functions
 load-redis-dialog-functions:
-	bash scripts/redis/load_dialog_functions.sh
+	bash chat-service/scripts/redis/load_dialog_functions.sh
 
 # Dialog load testing via JMeter
 .PHONY: run-dialog-load-test run-dialog-load-test-start

@@ -10,6 +10,7 @@ find_package(
                postgresql
                redis
                rabbitmq
+               grpc
     QUIET
 )
 if(NOT userver_FOUND)
@@ -18,6 +19,13 @@ if(NOT userver_FOUND)
 endif()
 
 userver_setup_environment()
+
+# Generate gRPC/protobuf stubs from shared proto contract
+userver_add_grpc_library(
+    ${PROJECT_NAME}-dialog-proto
+    PROTOS chat/v1/dialog.proto
+    SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/proto
+)
 
 # Common sources
 include_directories(src)
@@ -60,7 +68,7 @@ add_library(
         src/post/post_feed_consumer.hpp
         src/post/ws_fanout_consumer.cpp
         src/post/ws_fanout_consumer.hpp
-        src/dialog/dialog_utils.hpp
+        src/dialog/dialog_grpc_client.hpp
         src/dialog/dialog_send_handler.cpp
         src/dialog/dialog_send_handler.hpp
         src/dialog/dialog_list_handler.cpp
@@ -72,6 +80,8 @@ target_link_libraries(
            userver::postgresql
            userver::redis
            userver::rabbitmq
+           userver::grpc
+           ${PROJECT_NAME}-dialog-proto
 )
 
 

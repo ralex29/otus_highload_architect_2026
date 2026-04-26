@@ -13,6 +13,8 @@
 #include <userver/storages/secdist/component.hpp>
 #include <userver/storages/secdist/provider_component.hpp>
 #include <userver/urabbitmq/component.hpp>
+#include <userver/ugrpc/client/client_factory_component.hpp>
+#include <userver/ugrpc/client/component_list.hpp>
 
 #include <userver/utils/daemon_run.hpp>
 
@@ -36,6 +38,7 @@
 #include "post/post_feed_publisher.hpp"
 #include "post/post_feed_consumer.hpp"
 #include "post/ws_fanout_consumer.hpp"
+#include "dialog/dialog_grpc_client.hpp"
 #include "dialog/dialog_send_handler.hpp"
 #include "dialog/dialog_list_handler.hpp"
 #include "db/data_base.hpp"
@@ -58,7 +61,9 @@ int main(int argc, char* argv[])
         .Append<userver::components::RabbitMQ>("rabbitmq-driver")
         .Append<social_net_service::AuthCache>()
         .Append<userver::components::Postgres>(social_net_service::DataBase::Name)
-        .Append<userver::components::Postgres>("postgres-citus")
+        .AppendComponentList(userver::ugrpc::client::MinimalComponentList())
+        .Append<userver::ugrpc::client::ClientFactoryComponent>()
+        .Append<social_net_service::dialog::DialogGrpcClientComponent>("dialog-grpc-client")
         .Append<social_net_service::post::PostFeedCache>()
         .Append<social_net_service::post::PostFeedWsManager>()
         .Append<social_net_service::post::PostFeedPublisher>()

@@ -7,6 +7,10 @@ components_manager:
         fs-task-processor:            # Make a separate task processor for filesystem bound tasks.
             worker_threads: $worker-fs-threads
 
+        grpc-blocking-task-processor:
+            worker_threads: 2
+            thread_name: grpc-worker
+
     default_task_processor: main-task-processor
 
     components:                       # Configuring components that were registered via component_list
@@ -231,13 +235,17 @@ components_manager:
             sync-start: true
             connlimit_mode: manual
 
-        postgres-citus:
-            dbconnection: $pg-citus-connection
-            dbconnection#env: DB_CITUS_CONNECTION
-            blocking_task_processor: fs-task-processor
-            dns_resolver: async
-            sync-start: true
-            connlimit_mode: manual
+        # gRPC client for chat-service
+        grpc-client-common:
+            blocking-task-processor: grpc-blocking-task-processor
+
+        grpc-client-factory:
+            channel-args: {}
+
+        dialog-grpc-client:
+            endpoint: $chat-service-endpoint
+            client-name: dialog
+            factory-component: grpc-client-factory
 
         auth-pg-cache:
             pgcomponent: postgres-db-1

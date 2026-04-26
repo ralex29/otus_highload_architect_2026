@@ -1,0 +1,10 @@
+worker-threads: 4
+worker-fs-threads: 2
+logger-level: info
+
+is-testing: false
+
+http-port: 8081
+grpc-port: 8090
+
+secdist-path: /app/configs/secdist.json

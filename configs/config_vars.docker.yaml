@@ -12,3 +12,6 @@ pg-connection: postgresql://testsuite:testsuite@postgres-master:5432/social_net_
 pg-citus-connection: postgresql://testsuite:testsuite@citus-coordinator:5432/social_net_dialogs
 
 secdist-path: /app/configs/secdist.json
+
+# gRPC endpoint of the chat-service container
+chat-service-endpoint: chat-service:8090

@@ -214,6 +214,32 @@ services:
     networks:
       - social-net-network
 
+  chat-service:
+    build:
+      context: .
+      dockerfile: chat-service/Dockerfile
+      target: runtime
+    container_name: social-net-chat-service
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      citus-coordinator:
+        condition: service_healthy
+    environment:
+      SECDIST_CONFIG: '{"redis_settings":{"dialog-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}}}'
+    ports:
+      - "8081:8081"
+      - "8090:8090"
+    networks:
+      - social-net-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   app:
     build:
       context: .
@@ -223,15 +249,14 @@ services:
     depends_on:
       postgres-master:
         condition: service_healthy
-      citus-coordinator:
-        condition: service_healthy
       redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      chat-service:
+        condition: service_healthy
     environment:
       DB_CONNECTION: postgresql://testsuite:testsuite@postgres-master:5432/social_net_service_db_1
-      DB_CITUS_CONNECTION: postgresql://testsuite:testsuite@citus-coordinator:5432/social_net_dialogs
       CPU_LIMIT: "4"
       SECDIST_CONFIG: '{"redis_settings":{"feed-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}},"rabbitmq_settings":{"rabbitmq-driver":{"hosts":["rabbitmq"],"port":5672,"login":"guest","password":"guest","vhost":"/"}}}'
     ports:

@@ -2,7 +2,8 @@
 
 #include <userver/components/component.hpp>
 #include <userver/server/handlers/http_handler_base.hpp>
-#include <userver/storages/redis/client.hpp>
+
+#include "dialog_grpc_client.hpp"
 
 namespace social_net_service::dialog
 {
@@ -17,6 +18,6 @@ namespace social_net_service::dialog
                                        userver::server::request::RequestContext&) const override;
 
     private:
-        std::shared_ptr<userver::storages::redis::Client> redis_client_;
+        chat::v1::DialogServiceClient& grpc_client_;
     };
 } // social_net_service::dialog

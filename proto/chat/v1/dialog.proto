@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package chat.v1;
+
+option optimize_for = SPEED;
+
+service DialogService {
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+    rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {}
+}
+
+// from_user_id is NOT included — it comes from trusted gRPC metadata header
+// "x-user-id" set by the monolith after Bearer token validation.
+message SendMessageRequest {
+    string to_user_id = 1;
+    string text       = 2;
+}
+
+message SendMessageResponse {
+    // Empty on success; gRPC status carries errors.
+}
+
+message Message {
+    string from_user_id = 1;
+    string to_user_id   = 2;
+    string text         = 3;
+}
+
+message ListMessagesRequest {
+    // Corresponds to {user_id} path parameter in the legacy HTTP API.
+    string other_user_id = 1;
+}
+
+message ListMessagesResponse {
+    repeated Message messages = 1;
+}

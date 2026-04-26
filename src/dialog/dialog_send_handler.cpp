@@ -4,13 +4,13 @@
 #include <userver/components/component_context.hpp>
 #include <userver/formats/json/inline.hpp>
 #include <userver/formats/json/value.hpp>
-#include <userver/storages/redis/component.hpp>
-#include <userver/storages/redis/reply.hpp>
+#include <userver/ugrpc/client/exceptions.hpp>
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/string_generator.hpp>
+
+#include <chat/v1/dialog_service.usrv.pb.hpp>
 
 namespace
 {
@@ -34,9 +34,10 @@ namespace social_net_service::dialog
         const userver::components::ComponentConfig& config,
         const userver::components::ComponentContext& component_context)
         : HttpHandlerJsonBase(config, component_context)
-        , redis_client_(component_context
-              .FindComponent<userver::components::Redis>("key-value-database")
-              .GetClient("feed-redis"))
+        , grpc_client_(
+              component_context
+                  .FindComponent<DialogGrpcClientComponent>("dialog-grpc-client")
+                  .GetClient())
     {
     }
 
@@ -65,22 +66,25 @@ namespace social_net_service::dialog
             return {};
         }
 
-        const auto text = request_json[kTextFieldName].As<std::string>();
-        const auto msg_id = boost::uuids::to_string(boost::uuids::random_generator()());
+        chat::v1::SendMessageRequest grpc_req;
+        grpc_req.set_to_user_id(boost::uuids::to_string(to_user_id));
+        grpc_req.set_text(request_json[kTextFieldName].As<std::string>());
 
-        redis_client_->GenericCommand<userver::storages::redis::ReplyData>(
-            "FCALL",
-            {
-                "dialog_send",
-                "0",
-                boost::uuids::to_string(from_user_id),
-                boost::uuids::to_string(to_user_id),
-                text,
-                msg_id
-            },
-            0,
-            {}
-        ).Get();
+        // Pass authenticated user_id to chat-service via gRPC metadata.
+        // Span context (trace_id) is propagated automatically by userver's
+        // grpc-client-headers-propagator middleware.
+        userver::ugrpc::client::CallOptions opts;
+        opts.AddMetadata("x-user-id", boost::uuids::to_string(from_user_id));
+
+        try
+        {
+            grpc_client_.SendMessage(grpc_req, std::move(opts));
+        }
+        catch (const userver::ugrpc::client::RpcError& e)
+        {
+            request.SetResponseStatus(userver::server::http::HttpStatus::kInternalServerError);
+            return {};
+        }
 
         request.SetResponseStatus(userver::server::http::HttpStatus::kOk);
         return {};

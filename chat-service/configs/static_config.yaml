@@ -1,0 +1,79 @@
+components_manager:
+    task_processors:
+        main-task-processor:
+            worker_threads: $worker-threads
+
+        fs-task-processor:
+            worker_threads: $worker-fs-threads
+
+        grpc-blocking-task-processor:
+            worker_threads: 2
+            thread_name: grpc-worker
+
+    default_task_processor: main-task-processor
+
+    components:
+        logging:
+            fs-task-processor: fs-task-processor
+            loggers:
+                default:
+                    file_path: '@stderr'
+                    level: $logger-level
+                    overflow_behavior: discard
+
+        dynamic-config:
+            defaults:
+                HTTP_CLIENT_CONNECTION_POOL_SIZE: 1000
+
+        testsuite-support: {}
+
+        congestion-control:
+            load-enabled: false
+
+        dns-client:
+            fs-task-processor: fs-task-processor
+
+        tests-control:
+            load-enabled: $is-testing
+            path: /tests/{action}
+            method: POST
+            task_processor: main-task-processor
+
+        # Minimal HTTP server — only for /ping health check
+        server:
+            listener:
+                port: $http-port
+                task_processor: main-task-processor
+
+        handler-ping:
+            path: /ping
+            method: GET
+            task_processor: main-task-processor
+            throttling_enabled: false
+            url_trailing_slash: strict-match
+
+        # gRPC server
+        grpc-server:
+            port: $grpc-port
+
+        grpc-server-middlewares-pipeline: {}
+
+        dialog-grpc-service:
+            task-processor: main-task-processor
+
+        secdist: {}
+        default-secdist-provider:
+            config: $secdist-path
+            missing-ok: true
+            environment-secrets-key: SECDIST_CONFIG
+
+        key-value-database:
+            groups:
+              - config_name: dialog-redis
+                db: dialog-redis
+                sharding_strategy: RedisStandalone
+                allow_reads_from_master: true
+            subscribe_groups: []
+            thread_pools:
+                redis_thread_pool_size: 4
+                sentinel_thread_pool_size: 1

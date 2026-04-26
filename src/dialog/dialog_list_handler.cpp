@@ -4,12 +4,13 @@
 #include <userver/components/component_context.hpp>
 #include <userver/formats/json/serialize.hpp>
 #include <userver/formats/json/value_builder.hpp>
-#include <userver/storages/redis/component.hpp>
-#include <userver/storages/redis/reply.hpp>
+#include <userver/ugrpc/client/exceptions.hpp>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/string_generator.hpp>
+
+#include <chat/v1/dialog_service.usrv.pb.hpp>
 
 namespace social_net_service::dialog
 {
@@ -17,9 +18,10 @@ namespace social_net_service::dialog
         const userver::components::ComponentConfig& config,
         const userver::components::ComponentContext& component_context)
         : HttpHandlerBase(config, component_context)
-        , redis_client_(component_context
-              .FindComponent<userver::components::Redis>("key-value-database")
-              .GetClient("feed-redis"))
+        , grpc_client_(
+              component_context
+                  .FindComponent<DialogGrpcClientComponent>("dialog-grpc-client")
+                  .GetClient())
     {
     }
 
@@ -41,22 +43,33 @@ namespace social_net_service::dialog
             return {};
         }
 
-        const auto reply = redis_client_->GenericCommand<userver::storages::redis::ReplyData>(
-            "FCALL",
-            {
-                "dialog_list",
-                "0",
-                boost::uuids::to_string(user_id),
-                boost::uuids::to_string(other_user_id)
-            },
-            0,
-            {}
-        ).Get();
+        chat::v1::ListMessagesRequest grpc_req;
+        grpc_req.set_other_user_id(boost::uuids::to_string(other_user_id));
+
+        // Pass authenticated user_id to chat-service via gRPC metadata.
+        // Span context (trace_id) is propagated automatically.
+        userver::ugrpc::client::CallOptions opts;
+        opts.AddMetadata("x-user-id", boost::uuids::to_string(user_id));
+
+        chat::v1::ListMessagesResponse grpc_resp;
+        try
+        {
+            grpc_resp = grpc_client_.ListMessages(grpc_req, std::move(opts));
+        }
+        catch (const userver::ugrpc::client::RpcError&)
+        {
+            request.SetResponseStatus(userver::server::http::HttpStatus::kInternalServerError);
+            return {};
+        }
 
         userver::formats::json::ValueBuilder json_array(userver::formats::json::Type::kArray);
-        for (const auto& item : reply.GetArray())
+        for (const auto& msg : grpc_resp.messages())
         {
-            json_array.PushBack(userver::formats::json::FromString(item.GetString()));
+            userver::formats::json::ValueBuilder item;
+            item["from"] = msg.from_user_id();
+            item["to"]   = msg.to_user_id();
+            item["text"] = msg.text();
+            json_array.PushBack(std::move(item));
         }
 
         return userver::formats::json::ToString(json_array.ExtractValue());
