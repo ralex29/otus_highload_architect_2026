@@ -114,3 +114,21 @@ run-dialog-load-test:
 
 run-dialog-load-test-start:
 	bash scripts/run-dialog-load-test.sh --start
+
+# ДЗ 9: PostgreSQL-реплики + HAProxy + Nginx
+.PHONY: hw9-up hw9-down hw9-logs hw9-ps hw9-clean-data
+
+hw9-up:
+	$(DOCKER_COMPOSE) -f docker-compose.hw9.yml up -d
+
+hw9-down:
+	$(DOCKER_COMPOSE) -f docker-compose.hw9.yml down
+
+hw9-logs:
+	$(DOCKER_COMPOSE) -f docker-compose.hw9.yml logs -f
+
+hw9-ps:
+	$(DOCKER_COMPOSE) -f docker-compose.hw9.yml ps
+
+hw9-clean-data:
+	$(DOCKER_COMPOSE) -f docker-compose.hw9.yml down -v

@@ -1,0 +1,390 @@
+services:
+
+  # ─── PostgreSQL: master ───────────────────────────────────────────────────
+  postgres-master:
+    image: postgres:15-alpine
+    container_name: social-net-postgres-master
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: social_net_service_db_1
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - max_wal_senders=4
+      - -c
+      - wal_keep_size=256MB
+      - -c
+      - hot_standby=on
+    ports:
+      - "15433:5432"
+    volumes:
+      - postgres-master-data:/var/lib/postgresql/data
+      - ./postgresql/schemas/db_1.sql:/docker-entrypoint-initdb.d/schemas/db_1.sql:ro
+      - ./postgresql/data:/docker-entrypoint-initdb.d/data:ro
+      - ./init-db.sh:/docker-entrypoint-initdb.d/01-init-db.sh:ro
+      - ./postgresql/setup-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_service_db_1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - social-net-network
+
+  # ─── PostgreSQL: replica-1 ────────────────────────────────────────────────
+  postgres-replica-1:
+    image: postgres:15-alpine
+    container_name: social-net-postgres-replica-1
+    restart: unless-stopped
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      MASTER_HOST: postgres-master
+      MASTER_PORT: "5432"
+      REPLICATION_USER: replicator
+      REPLICATION_PASSWORD: replicator_password
+      APPLICATION_NAME: replica1
+    entrypoint: /replica-entrypoint.sh
+    ports:
+      - "15434:5432"
+    volumes:
+      - postgres-replica-1-data:/var/lib/postgresql/data
+      - ./postgresql/replica-entrypoint.sh:/replica-entrypoint.sh:ro
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_service_db_1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - social-net-network
+
+  # ─── PostgreSQL: replica-2 ────────────────────────────────────────────────
+  postgres-replica-2:
+    image: postgres:15-alpine
+    container_name: social-net-postgres-replica-2
+    restart: unless-stopped
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      MASTER_HOST: postgres-master
+      MASTER_PORT: "5432"
+      REPLICATION_USER: replicator
+      REPLICATION_PASSWORD: replicator_password
+      APPLICATION_NAME: replica2
+    entrypoint: /replica-entrypoint.sh
+    ports:
+      - "15435:5432"
+    volumes:
+      - postgres-replica-2-data:/var/lib/postgresql/data
+      - ./postgresql/replica-entrypoint.sh:/replica-entrypoint.sh:ro
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_service_db_1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - social-net-network
+
+  # ─── HAProxy: балансировщик PostgreSQL-реплик ────────────────────────────
+  haproxy-postgres:
+    image: haproxy:2.8-alpine
+    container_name: social-net-haproxy-postgres
+    restart: unless-stopped
+    volumes:
+      - ./haproxy/haproxy-postgres.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "15436:5432"   # PostgreSQL endpoint (реплики через HAProxy)
+      - "8404:8404"    # Дашборд статистики HAProxy
+    depends_on:
+      postgres-replica-1:
+        condition: service_healthy
+      postgres-replica-2:
+        condition: service_healthy
+    networks:
+      - social-net-network
+
+  # ─── Citus: coordinator + workers ────────────────────────────────────────
+  citus-coordinator:
+    image: citusdata/citus:12.1
+    container_name: social-net-citus-coordinator
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_DB: social_net_dialogs
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "15437:5432"
+    volumes:
+      - citus-coordinator-data:/var/lib/postgresql/data
+      - ./postgresql/schemas/citus_coordinator.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./postgresql/init-citus.sh:/docker-entrypoint-initdb.d/02-init-citus.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_dialogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - social-net-network
+
+  citus-worker-0:
+    image: citusdata/citus:12.1
+    container_name: social-net-citus-worker-0
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_DB: social_net_dialogs
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - citus-worker-0-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_dialogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - social-net-network
+
+  citus-worker-1:
+    image: citusdata/citus:12.1
+    container_name: social-net-citus-worker-1
+    restart: unless-stopped
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_DB: social_net_dialogs
+      POSTGRES_USER: testsuite
+      POSTGRES_PASSWORD: testsuite
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - citus-worker-1-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testsuite -d social_net_dialogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - social-net-network
+
+  # ─── Redis ───────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: social-net-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - social-net-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── RabbitMQ ─────────────────────────────────────────────────────────────
+  rabbitmq-0:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbit-0
+    container_name: rabbitmq-0
+    restart: unless-stopped
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "shared-secret-cookie"
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - social-net-network
+
+  # ─── Chat service ─────────────────────────────────────────────────────────
+  chat-service:
+    build:
+      context: .
+      dockerfile: chat-service/Dockerfile
+      target: runtime
+    container_name: social-net-chat-service
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      citus-coordinator:
+        condition: service_healthy
+    environment:
+      SECDIST_CONFIG: '{"redis_settings":{"dialog-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}}}'
+    ports:
+      - "8081:8081"
+      - "8090:8090"
+    networks:
+      - social-net-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ─── App instance 1 ──────────────────────────────────────────────────────
+  app-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: social-net-app-1
+    restart: unless-stopped
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq-0:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION: postgresql://testsuite:testsuite@postgres-master:5432/social_net_service_db_1
+      DB_CITUS_CONNECTION: postgresql://testsuite:testsuite@citus-coordinator:5432/social_net_dialogs
+      CPU_LIMIT: "4"
+      SECDIST_CONFIG: '{"redis_settings":{"feed-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}},"rabbitmq_settings":{"rabbitmq-driver":{"hosts":["rabbit-0"],"port":5672,"login":"guest","password":"guest","vhost":"/"}}}'
+    ports:
+      - "18081:8080"   # прямой доступ для отладки
+    volumes:
+      - ./configs:/app/configs:ro
+    networks:
+      - social-net-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ─── App instance 2 ──────────────────────────────────────────────────────
+  app-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: social-net-app-2
+    restart: unless-stopped
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq-0:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION: postgresql://testsuite:testsuite@postgres-master:5432/social_net_service_db_1
+      DB_CITUS_CONNECTION: postgresql://testsuite:testsuite@citus-coordinator:5432/social_net_dialogs
+      CPU_LIMIT: "4"
+      SECDIST_CONFIG: '{"redis_settings":{"feed-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}},"rabbitmq_settings":{"rabbitmq-driver":{"hosts":["rabbit-0"],"port":5672,"login":"guest","password":"guest","vhost":"/"}}}'
+    ports:
+      - "18082:8080"   # прямой доступ для отладки
+    volumes:
+      - ./configs:/app/configs:ro
+    networks:
+      - social-net-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ─── Nginx: балансировщик приложений ─────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: social-net-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"   # единственная публичная точка входа
+    depends_on:
+      app-1:
+        condition: service_healthy
+      app-2:
+        condition: service_healthy
+    networks:
+      - social-net-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  social-net-network:
+    driver: bridge
+
+volumes:
+  postgres-master-data:
+    driver: local
+  postgres-replica-1-data:
+    driver: local
+  postgres-replica-2-data:
+    driver: local
+  citus-coordinator-data:
+    driver: local
+  citus-worker-0-data:
+    driver: local
+  citus-worker-1-data:
+    driver: local
