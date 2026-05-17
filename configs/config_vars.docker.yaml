@@ -15,3 +15,6 @@ secdist-path: /app/configs/secdist.json
 
 # gRPC endpoint of the chat-service container
 chat-service-endpoint: chat-service:8090
+
+# gRPC endpoint of the counter-service container
+counter-service-endpoint: counter-service:8091

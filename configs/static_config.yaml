@@ -208,6 +208,16 @@ components_manager:
             scopes:
               - read
 
+        handler-dialog-unread-count:
+          path: /dialog/unread-count
+          method: GET
+          task_processor: main-task-processor
+          auth:
+            types:
+              - bearer
+            scopes:
+              - read
+
         post-feed-cache: {}
 
         secdist: {}
@@ -245,6 +255,11 @@ components_manager:
         dialog-grpc-client:
             endpoint: $chat-service-endpoint
             client-name: dialog
+            factory-component: grpc-client-factory
+
+        counter-grpc-client:
+            endpoint: $counter-service-endpoint
+            client-name: counter
             factory-component: grpc-client-factory
 
         auth-pg-cache:

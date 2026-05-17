@@ -1,16 +1,22 @@
 #include "dialog_service.hpp"
 
+#include <chrono>
+
 #include <grpcpp/support/status.h>
 
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include <userver/engine/deadline.hpp>
 #include <userver/formats/json/serialize.hpp>
 #include <userver/formats/json/value.hpp>
 #include <userver/formats/json/value_builder.hpp>
 #include <userver/storages/redis/component.hpp>
 #include <userver/storages/redis/reply.hpp>
 #include <userver/ugrpc/server/exceptions.hpp>
+#include <userver/urabbitmq/component.hpp>
+#include <userver/urabbitmq/typedefs.hpp>
+#include <userver/utils/flags.hpp>
 
 namespace chat_service::dialog
 {
@@ -40,8 +46,10 @@ std::string GetString(const userver::formats::json::Value& v)
 } // namespace
 
 DialogServiceImpl::DialogServiceImpl(
-    std::shared_ptr<userver::storages::redis::Client> redis)
+    std::shared_ptr<userver::storages::redis::Client> redis,
+    std::shared_ptr<userver::urabbitmq::Client> rabbit)
     : redis_client_(std::move(redis))
+    , rabbit_client_(std::move(rabbit))
 {
 }
 
@@ -61,6 +69,19 @@ DialogServiceImpl::SendMessageResult DialogServiceImpl::SendMessage(
         0,
         {}
     ).Get();
+
+    // SAGA step 2: publish message.sent event so counter-service increments
+    // the recipient's unread counter. PublishReliable ensures at-least-once delivery.
+    userver::formats::json::ValueBuilder evt;
+    evt["from_user_id"] = from_user_id;
+    evt["to_user_id"]   = to_user_id;
+
+    rabbit_client_->PublishReliable(
+        userver::urabbitmq::Exchange{"messages-exchange"},
+        "message.sent." + to_user_id,
+        userver::formats::json::ToString(evt.ExtractValue()),
+        userver::urabbitmq::MessageType::kPersistent,
+        userver::engine::Deadline::FromDuration(std::chrono::seconds{5}));
 
     return chat::v1::SendMessageResponse{};
 }
@@ -99,7 +120,20 @@ DialogServiceComponent::DialogServiceComponent(
     , service_(
           context
               .FindComponent<userver::components::Redis>("key-value-database")
-              .GetClient("dialog-redis"))
+              .GetClient("dialog-redis"),
+          [&] {
+              auto client =
+                  context.FindComponent<userver::components::RabbitMQ>("rabbitmq-driver")
+                         .GetClient();
+              // Declare the exchange idempotently so any service start order works.
+              client->DeclareExchange(
+                  userver::urabbitmq::Exchange{"messages-exchange"},
+                  userver::urabbitmq::Exchange::Type::kTopic,
+                  userver::utils::Flags<userver::urabbitmq::Exchange::Flags>{
+                      userver::urabbitmq::Exchange::Flags::kDurable},
+                  userver::engine::Deadline::FromDuration(std::chrono::seconds{10}));
+              return client;
+          }())
 {
     RegisterService(service_);
 }

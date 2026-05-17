@@ -20,10 +20,16 @@ endif()
 
 userver_setup_environment()
 
-# Generate gRPC/protobuf stubs from shared proto contract
+# Generate gRPC/protobuf stubs from shared proto contracts
 userver_add_grpc_library(
     ${PROJECT_NAME}-dialog-proto
     PROTOS chat/v1/dialog.proto
+    SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/proto
+)
+
+userver_add_grpc_library(
+    ${PROJECT_NAME}-counter-proto
+    PROTOS counter/v1/counter.proto
     SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/proto
 )
 
@@ -69,10 +75,13 @@ add_library(
         src/post/ws_fanout_consumer.cpp
         src/post/ws_fanout_consumer.hpp
         src/dialog/dialog_grpc_client.hpp
+        src/dialog/counter_grpc_client.hpp
         src/dialog/dialog_send_handler.cpp
         src/dialog/dialog_send_handler.hpp
         src/dialog/dialog_list_handler.cpp
         src/dialog/dialog_list_handler.hpp
+        src/dialog/dialog_unread_handler.cpp
+        src/dialog/dialog_unread_handler.hpp
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs
@@ -82,6 +91,7 @@ target_link_libraries(
            userver::rabbitmq
            userver::grpc
            ${PROJECT_NAME}-dialog-proto
+           ${PROJECT_NAME}-counter-proto
 )
 
 

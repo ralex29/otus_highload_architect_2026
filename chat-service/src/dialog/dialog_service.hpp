@@ -5,6 +5,7 @@
 #include <userver/components/component_fwd.hpp>
 #include <userver/storages/redis/client.hpp>
 #include <userver/ugrpc/server/service_component_base.hpp>
+#include <userver/urabbitmq/client.hpp>
 
 #include <chat/v1/dialog_service.usrv.pb.hpp>
 
@@ -14,8 +15,9 @@ namespace chat_service::dialog
 class DialogServiceImpl final : public chat::v1::DialogServiceBase
 {
 public:
-    explicit DialogServiceImpl(
-        std::shared_ptr<userver::storages::redis::Client> redis);
+    DialogServiceImpl(
+        std::shared_ptr<userver::storages::redis::Client> redis,
+        std::shared_ptr<userver::urabbitmq::Client> rabbit);
 
     SendMessageResult SendMessage(
         CallContext& context,
@@ -27,6 +29,7 @@ public:
 
 private:
     std::shared_ptr<userver::storages::redis::Client> redis_client_;
+    std::shared_ptr<userver::urabbitmq::Client> rabbit_client_;
 };
 
 class DialogServiceComponent final

@@ -39,8 +39,10 @@
 #include "post/post_feed_consumer.hpp"
 #include "post/ws_fanout_consumer.hpp"
 #include "dialog/dialog_grpc_client.hpp"
+#include "dialog/counter_grpc_client.hpp"
 #include "dialog/dialog_send_handler.hpp"
 #include "dialog/dialog_list_handler.hpp"
+#include "dialog/dialog_unread_handler.hpp"
 #include "db/data_base.hpp"
 
 
@@ -64,6 +66,7 @@ int main(int argc, char* argv[])
         .AppendComponentList(userver::ugrpc::client::MinimalComponentList())
         .Append<userver::ugrpc::client::ClientFactoryComponent>()
         .Append<social_net_service::dialog::DialogGrpcClientComponent>("dialog-grpc-client")
+        .Append<social_net_service::dialog::CounterGrpcClientComponent>("counter-grpc-client")
         .Append<social_net_service::post::PostFeedCache>()
         .Append<social_net_service::post::PostFeedWsManager>()
         .Append<social_net_service::post::PostFeedPublisher>()
@@ -82,7 +85,8 @@ int main(int argc, char* argv[])
         .Append<social_net_service::post::PostFeedHandler>()
         .Append<social_net_service::post::PostFeedWsHandler>()
         .Append<social_net_service::dialog::DialogSendHandler>()
-        .Append<social_net_service::dialog::DialogListHandler>();
+        .Append<social_net_service::dialog::DialogListHandler>()
+        .Append<social_net_service::dialog::DialogUnreadHandler>();
 
     return userver::utils::DaemonMain(argc, argv, component_list);
 }

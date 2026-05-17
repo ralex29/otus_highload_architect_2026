@@ -39,7 +39,6 @@ components_manager:
             method: POST
             task_processor: main-task-processor
 
-        # Minimal HTTP server — only for /ping health check
         server:
             listener:
                 port: $http-port
@@ -52,13 +51,12 @@ components_manager:
             throttling_enabled: false
             url_trailing_slash: strict-match
 
-        # gRPC server
         grpc-server:
             port: $grpc-port
 
         grpc-server-middlewares-pipeline: {}
 
-        dialog-grpc-service:
+        counter-grpc-service:
             task-processor: main-task-processor
 
         secdist: {}
@@ -69,8 +67,8 @@ components_manager:
 
         key-value-database:
             groups:
-              - config_name: dialog-redis
-                db: dialog-redis
+              - config_name: counter-redis
+                db: counter-redis
                 sharding_strategy: RedisStandalone
                 allow_reads_from_master: true
             subscribe_groups: []
@@ -84,3 +82,10 @@ components_manager:
             max_pool_size: 10
             max_in_flight_requests: 10
             use_secure_connection: false
+
+        counter-consumer:
+            rabbit_name: rabbitmq-driver
+            queue: message-counters
+            prefetch_count: 100
+
+        counter-reconciler: {}

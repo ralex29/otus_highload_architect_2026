@@ -214,6 +214,19 @@ services:
     networks:
       - social-net-network
 
+  redis-counter-init:
+    image: redis:7-alpine
+    container_name: social-net-redis-counter-init
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - social-net-network
+    volumes:
+      - ./scripts/redis:/scripts:ro
+    entrypoint: ["sh", "/scripts/counter_init.sh"]
+    restart: "no"
+
   chat-service:
     build:
       context: .
@@ -224,10 +237,14 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
       citus-coordinator:
         condition: service_healthy
+      redis-counter-init:
+        condition: service_completed_successfully
     environment:
-      SECDIST_CONFIG: '{"redis_settings":{"dialog-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}}}'
+      SECDIST_CONFIG: '{"redis_settings":{"dialog-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}},"rabbitmq_settings":{"rabbitmq-driver":{"hosts":["rabbitmq"],"port":5672,"login":"guest","password":"guest","vhost":"/"}}}'
     ports:
       - "8081:8081"
       - "8090:8090"
@@ -235,6 +252,34 @@ services:
       - social-net-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  counter-service:
+    build:
+      context: .
+      dockerfile: counter-service/Dockerfile
+      target: runtime
+    container_name: social-net-counter-service
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis-counter-init:
+        condition: service_completed_successfully
+    environment:
+      SECDIST_CONFIG: '{"redis_settings":{"counter-redis":{"password":"","sentinels":[{"host":"redis","port":6379}],"shards":[{"name":"test_standalone_master0"}]}},"rabbitmq_settings":{"rabbitmq-driver":{"hosts":["rabbitmq"],"port":5672,"login":"guest","password":"guest","vhost":"/"}}}'
+    ports:
+      - "8082:8082"
+      - "8091:8091"
+    networks:
+      - social-net-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -254,6 +299,8 @@ services:
       rabbitmq:
         condition: service_healthy
       chat-service:
+        condition: service_healthy
+      counter-service:
         condition: service_healthy
     environment:
       DB_CONNECTION: postgresql://testsuite:testsuite@postgres-master:5432/social_net_service_db_1

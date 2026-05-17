@@ -4,6 +4,7 @@
 #include <userver/components/component_context.hpp>
 #include <userver/formats/json/serialize.hpp>
 #include <userver/formats/json/value_builder.hpp>
+#include <userver/logging/log.hpp>
 #include <userver/ugrpc/client/exceptions.hpp>
 
 #include <boost/uuid/uuid.hpp>
@@ -11,6 +12,7 @@
 #include <boost/uuid/string_generator.hpp>
 
 #include <chat/v1/dialog_service.usrv.pb.hpp>
+#include <counter/v1/counter_client.usrv.pb.hpp>
 
 namespace social_net_service::dialog
 {
@@ -21,6 +23,10 @@ namespace social_net_service::dialog
         , grpc_client_(
               component_context
                   .FindComponent<DialogGrpcClientComponent>("dialog-grpc-client")
+                  .GetClient())
+        , counter_client_(
+              component_context
+                  .FindComponent<CounterGrpcClientComponent>("counter-grpc-client")
                   .GetClient())
     {
     }
@@ -43,13 +49,34 @@ namespace social_net_service::dialog
             return {};
         }
 
+        const std::string user_id_str = boost::uuids::to_string(user_id);
+        const std::string other_id_str = boost::uuids::to_string(other_user_id);
+
+        // SAGA transaction 2, step 1: reset unread counter for this dialog.
+        // Best-effort — failure is logged but does not block the message list.
+        // Periodic reconciliation in counter-service will correct any stale counts.
+        {
+            counter::v1::ResetDialogCounterRequest reset_req;
+            reset_req.set_partner_id(other_id_str);
+            userver::ugrpc::client::CallOptions reset_opts;
+            reset_opts.AddMetadata("x-user-id", user_id_str);
+            try
+            {
+                counter_client_.ResetDialogCounter(reset_req, std::move(reset_opts));
+            }
+            catch (const userver::ugrpc::client::RpcError& e)
+            {
+                LOG_WARNING() << "counter reset failed (will reconcile): " << e.what();
+            }
+        }
+
         chat::v1::ListMessagesRequest grpc_req;
-        grpc_req.set_other_user_id(boost::uuids::to_string(other_user_id));
+        grpc_req.set_other_user_id(other_id_str);
 
         // Pass authenticated user_id to chat-service via gRPC metadata.
         // Span context (trace_id) is propagated automatically.
         userver::ugrpc::client::CallOptions opts;
-        opts.AddMetadata("x-user-id", boost::uuids::to_string(user_id));
+        opts.AddMetadata("x-user-id", user_id_str);
 
         chat::v1::ListMessagesResponse grpc_resp;
         try

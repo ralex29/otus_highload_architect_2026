@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package counter.v1;
+
+option optimize_for = SPEED;
+
+service CounterService {
+    rpc GetUnreadCount(GetUnreadCountRequest) returns (GetUnreadCountResponse) {}
+    rpc ResetDialogCounter(ResetDialogCounterRequest) returns (ResetDialogCounterResponse) {}
+}
+
+// user_id is extracted from gRPC metadata "x-user-id" (set by the monolith after Bearer auth),
+// not from the request body — matches the convention in chat/v1/dialog.proto.
+message GetUnreadCountRequest {}
+
+message GetUnreadCountResponse {
+    int64 total = 1;
+}
+
+message ResetDialogCounterRequest {
+    string partner_id = 1;
+}
+
+message ResetDialogCounterResponse {
+    int64 dialog_count = 1;
+}

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12...3.31)
-project(chat_service CXX)
+project(counter_service CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(DownloadUserver)
@@ -17,18 +17,20 @@ userver_setup_environment()
 
 include_directories(src)
 
-# Generate gRPC/protobuf stubs from shared proto
 userver_add_grpc_library(
     ${PROJECT_NAME}-proto
-    PROTOS chat/v1/dialog.proto
+    PROTOS counter/v1/counter.proto
     SOURCE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../proto
 )
 
 add_library(
     ${PROJECT_NAME}_objs OBJECT
-    src/dialog/dialog_service.cpp
-    src/dialog/dialog_service.hpp
-    src/dialog/dialog_utils.hpp
+    src/counter/counter_service.cpp
+    src/counter/counter_service.hpp
+    src/counter/counter_consumer.cpp
+    src/counter/counter_consumer.hpp
+    src/counter/counter_reconciler.cpp
+    src/counter/counter_reconciler.hpp
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs
