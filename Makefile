@@ -132,3 +132,50 @@ hw9-ps:
 
 hw9-clean-data:
 	$(DOCKER_COMPOSE) -f docker-compose.hw9.yml down -v
+
+# ДЗ 11: Monitoring stack (Prometheus + Grafana + Zabbix)
+.PHONY: monitoring-up monitoring-down monitoring-logs monitoring-restart
+.PHONY: zabbix-up zabbix-down zabbix-logs
+.PHONY: hw11-up hw11-down hw11-logs
+
+monitoring-up:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.yml up -d
+
+monitoring-down:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.yml down
+
+monitoring-logs:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.yml logs -f
+
+monitoring-restart:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.yml restart
+
+zabbix-up:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.zabbix.yml up -d
+
+zabbix-down:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.zabbix.yml down
+
+zabbix-logs:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.zabbix.yml logs -f
+
+hw11-up: docker-up monitoring-up zabbix-up
+	@echo ""
+	@echo "HW11 monitoring stack is up:"
+	@echo "  chat-service /metrics: http://localhost:1188/metrics?format=prometheus"
+	@echo "  Prometheus UI:         http://localhost:9090"
+	@echo "  Grafana UI:            http://localhost:3000  (admin / admin)"
+	@echo "  Zabbix Web UI:         http://localhost:8088  (Admin / zabbix)"
+	@echo "  cAdvisor UI:           http://localhost:8085"
+	@echo "  node-exporter:         http://localhost:9100/metrics"
+
+hw11-down:
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.zabbix.yml down
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.yml down
+	$(DOCKER_COMPOSE) down
+
+hw11-logs:
+	@echo "=== Zabbix logs (tail 100) ==="
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.zabbix.yml logs --tail=100
+	@echo "=== Monitoring logs (tail 100) ==="
+	$(DOCKER_COMPOSE) -f monitoring/docker-compose.yml logs --tail=100

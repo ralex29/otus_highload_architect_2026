@@ -25,7 +25,7 @@
       <!-- Scenario 1: Send Load (50 VUs, 60s)                              -->
       <!-- ================================================================ -->
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Send Load">
-        <intProp name="ThreadGroup.num_threads">50</intProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(virtual_users,50)}</stringProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -237,9 +237,13 @@
       <!-- Scenario 2: List Load (50 VUs, 60s)                              -->
       <!-- ================================================================ -->
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="List Load">
-        <intProp name="ThreadGroup.num_threads">50</intProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(virtual_users,50)}</stringProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
+        <!-- Пауза восстановления: даём backend (RabbitMQ/DB/CPU) разгрести очередь
+             после интенсивного Send-всплеска, иначе регистрация/логин фазы List
+             отдают HTTP 500 и фаза не генерирует трафик. -->
+        <longProp name="ThreadGroup.delay">90</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -437,9 +441,11 @@
       <!-- Scenario 3: Mixed Load (100 VUs, 120s, 50% send / 50% list)      -->
       <!-- ================================================================ -->
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Mixed Load">
-        <intProp name="ThreadGroup.num_threads">100</intProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(virtual_users_mixed,100)}</stringProp>
         <intProp name="ThreadGroup.ramp_time">2</intProp>
         <longProp name="ThreadGroup.duration">120</longProp>
+        <!-- Пауза восстановления после фазы List перед смешанной нагрузкой. -->
+        <longProp name="ThreadGroup.delay">60</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>

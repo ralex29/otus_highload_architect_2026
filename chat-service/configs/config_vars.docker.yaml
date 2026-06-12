@@ -6,5 +6,6 @@ is-testing: false
 
 http-port: 8081
 grpc-port: 8090
+monitor-port: 1188
 
 secdist-path: /app/configs/secdist.json

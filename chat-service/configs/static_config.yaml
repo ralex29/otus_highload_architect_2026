@@ -10,6 +10,10 @@ components_manager:
             worker_threads: 2
             thread_name: grpc-worker
 
+        monitor-task-processor:
+            worker_threads: 1
+            thread_name: mon-worker
+
     default_task_processor: main-task-processor
 
     components:
@@ -39,11 +43,14 @@ components_manager:
             method: POST
             task_processor: main-task-processor
 
-        # Minimal HTTP server — only for /ping health check
+        # Minimal HTTP server — /ping (main port) + /metrics (monitor port)
         server:
             listener:
                 port: $http-port
                 task_processor: main-task-processor
+            listener-monitor:
+                port: $monitor-port
+                task_processor: monitor-task-processor
 
         handler-ping:
             path: /ping
@@ -51,6 +58,14 @@ components_manager:
             task_processor: main-task-processor
             throttling_enabled: false
             url_trailing_slash: strict-match
+
+        handler-server-monitor:
+            path: /metrics
+            method: GET
+            task_processor: monitor-task-processor
+            format: prometheus
+            common-labels:
+                application: chat-service
 
         # gRPC server
         grpc-server:

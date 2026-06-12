@@ -27,6 +27,10 @@ RESULTS_DIR="$JMETER_DIR/test_dialog/$TIMESTAMP"
 DOCKER_NETWORK="social-net-service_social-net-network"
 JMETER_IMAGE="justb4/jmeter"
 
+# Virtual users — override via env: VU=100 make run-dialog-load-test
+VU="${VU:-50}"
+VU_MIXED="${VU_MIXED:-$((VU * 2))}"
+
 START_COMPOSE=0
 for arg in "$@"; do
   [[ "$arg" == "--start" ]] && START_COMPOSE=1
@@ -75,7 +79,7 @@ ok "Results directory: $RESULTS_DIR"
 # -----------------------------------------------------------------------
 sep "Phase 4: Run JMeter load test (~4 min)"
 # -----------------------------------------------------------------------
-info "Scenarios: Send Load (50 VUs, 60s) → List Load (50 VUs, 60s) → Mixed Load (100 VUs, 120s)"
+info "Scenarios: Send Load (${VU} VUs, 60s) → List Load (${VU} VUs, 60s) → Mixed Load (${VU_MIXED} VUs, 120s)"
 info "User registration and login are handled inside JMeter (Once Only Controller per VU)"
 info "JMeter image: $JMETER_IMAGE"
 info "Network: $DOCKER_NETWORK"
@@ -91,7 +95,9 @@ docker run --rm \
   -l /results/results.jtl \
   -e -o /results/report \
   -Jhost=app \
-  -Jport=8080
+  -Jport=8080 \
+  -Jvirtual_users="$VU" \
+  -Jvirtual_users_mixed="$VU_MIXED"
 
 JMETER_EXIT=$?
 echo ""

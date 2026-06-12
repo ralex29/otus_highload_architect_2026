@@ -14,3 +14,12 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'chat-service'
+    metrics_path: /metrics
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: ['chat-service:1188']
+        labels:
+          service: 'chat-service'
